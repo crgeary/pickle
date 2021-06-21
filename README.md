@@ -1,6 +1,6 @@
 # Pickle
 
-🥒 Extend the shelf life of PageSpeed Insights
+Extend the shelf life of PageSpeed Insights reports 🥒
 
 ## Licence
 

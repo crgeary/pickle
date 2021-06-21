@@ -1,6 +1,6 @@
 {
     "name": "pickle",
-    "description": "🥒 Extend the shelf life of PageSpeed Insights",
+    "description": "Extend the shelf life of PageSpeed Insights reports",
     "version": "0.0.1",
     "author": "Christopher Geary",
     "license": "MIT",
