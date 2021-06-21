@@ -1,7 +1,7 @@
 const path = require('path');
 
 const lambdas = {
-    API_Tests_Create: './src/lambda/functions/API_Tests_Create',
+    API_Audits_Create: './src/lambda/functions/API_Audits_Create',
 };
 
 module.exports = {
