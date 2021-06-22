@@ -2,6 +2,9 @@ const path = require('path');
 
 const lambdas = {
     API_Audits_Create: './src/lambda/functions/API_Audits_Create',
+    API_Audits_Index: './src/lambda/functions/API_Audits_Index',
+    API_Audits_Show: './src/lambda/functions/API_Audits_Show',
+    Stream_Audits_Delete: './src/lambda/functions/Stream_Audits_Delete',
 };
 
 module.exports = {
