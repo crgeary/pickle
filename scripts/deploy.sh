@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ -z "${ARTIFACT_BUCKET}" ]; then
+if [[ -z "${ARTIFACT_BUCKET}" ]]; then
     read -p "S3 bucket to store artifacts: " ARTIFACT_BUCKET
 fi
 
