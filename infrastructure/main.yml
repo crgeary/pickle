@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: A Serverless API for storing PageSpeed Insight reports
+
+Resources:
+  BucketAudits:
+    Type: "AWS::S3::Bucket"
+    DependsOn:
+      - RoleAudits
+
+  LambdaAPIAuditsCreate:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: POST /audits
+      Code: ../dist/API_Audits_Create
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Timeout: 120
+      Role: !GetAtt RoleAudits.Arn
+      Environment:
+        Variables:
+          AUDITS_BUCKET: !Ref BucketAudits
+          AUDITS_TABLE: !Ref DynamoTableAudits
+
+  LambdaAPIAuditsIndex:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: GET /audits
+      Code: ../dist/API_Audits_Index
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Timeout: 5
+      Role: !GetAtt RoleAudits.Arn
+      Environment:
+        Variables:
+          AUDITS_TABLE: !Ref DynamoTableAudits
+
+  LambdaAPIAuditsShow:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: GET /audits/:audit
+      Code: ../dist/API_Audits_Show
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Timeout: 5
+      Role: !GetAtt RoleAudits.Arn
+      Environment:
+        Variables:
+          AUDITS_BUCKET: !Ref BucketAudits
+          AUDITS_TABLE: !Ref DynamoTableAudits
+
+  LambdaStreamAuditsDelete:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: Removes audits from DynamoDB and S3
+      Code: ../dist/Stream_Audits_Delete
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Timeout: 5
+      Role: !GetAtt RoleAudits.Arn
+      Environment:
+        Variables:
+          AUDITS_BUCKET: !Ref BucketAudits
+    DependsOn:
+      - DynamoTableAudits
+
+  DynamoTableAudits:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+    DependsOn:
+      - RoleAudits
+
+  RoleAudits:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
