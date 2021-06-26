@@ -91,3 +91,17 @@ Resources:
                 - lambda.amazonaws.com
             Action:
               - "sts:AssumeRole"
+
+  ApiGatewayHttpApi:
+    Type: "AWS::ApiGatewayV2::Api"
+    Properties:
+      Body:
+        "Fn::Transform":
+          Name: "Aws::Include"
+          Parameters:
+            Location: "api.yml"
+
+Outputs:
+  HttpApiEndpoint:
+    Description: The endpoint for the API
+    Value: !GetAtt ApiGatewayHttpApi.ApiEndpoint
