@@ -142,6 +142,13 @@ Resources:
           allowOrigins:
             - "*"
 
+  ApiGatewayHttpApiStage:
+    Type: "AWS::ApiGatewayV2::Stage"
+    Properties:
+      StageName: $default
+      ApiId: !Ref ApiGatewayHttpApi
+      AutoDeploy: true
+
 Outputs:
   HttpApiEndpoint:
     Description: The endpoint for the API
