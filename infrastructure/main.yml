@@ -76,6 +76,9 @@ Resources:
           AttributeType: S
       StreamSpecification:
         StreamViewType: NEW_IMAGE
+      TimeToLiveSpecification:
+        AttributeName: expires_at
+        Enabled: true
     DependsOn:
       - RoleAudits
 
