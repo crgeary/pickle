@@ -12,7 +12,7 @@ DIR=$(basename $(pwd))
 STACK_NAME="${DIR}-${STACK_ENV}"
 
 aws cloudformation package \
-    --template-file template.yml \
+    --template-file infrastructure/main.yml \
     --s3-bucket ${ARTIFACT_BUCKET} \
     --output-template-file dist/template.${STACK_ENV}.yml
 
