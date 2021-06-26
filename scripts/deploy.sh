@@ -18,4 +18,5 @@ aws cloudformation package \
 
 aws cloudformation deploy \
     --template-file dist/template.${STACK_ENV}.yml \
-    --stack-name ${STACK_NAME}
+    --stack-name ${STACK_NAME} \
+    --capabilities CAPABILITY_IAM
