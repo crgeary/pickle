@@ -117,6 +117,16 @@ Resources:
     DependsOn:
       - DynamoTableAudits
 
+  EventMappingDynamoDB:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      Enabled: true
+      StartingPosition: LATEST
+      EventSourceArn: !GetAtt DynamoTableAudits.StreamArn
+      FunctionName: !Ref LambdaStreamAuditsDelete
+
+  # DynamoDB
+
   DynamoTableAudits:
     Type: "AWS::DynamoDB::Table"
     Properties:
