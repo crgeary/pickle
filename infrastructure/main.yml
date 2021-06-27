@@ -156,6 +156,17 @@ Resources:
           title: "Audits API"
           version: "0.0.1"
         paths:
+          /pagespeedonline/v5/runPagespeed:
+            get:
+              responses:
+                default:
+                  description: "GET /pagespeedonline/v5/runPagespeed"
+              x-amazon-apigateway-integration:
+                payloadFormatVersion: "2.0"
+                type: "aws_proxy"
+                httpMethod: "POST"
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAPIAuditsCreate.Arn}/invocations
+                connectionType: "INTERNET"
           /audits:
             get:
               responses:
