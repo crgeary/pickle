@@ -9,6 +9,8 @@ Metadata:
         - W3002
 
 Resources:
+  # Roles & Permissions
+
   RoleAudits:
     Type: "AWS::IAM::Role"
     Properties:
@@ -26,10 +28,38 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
 
+  LambdaAPIAuditsCreatePermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref LambdaAPIAuditsCreate
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayHttpApi}/*"
+
+  LambdaAPIAuditsIndexPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref LambdaAPIAuditsIndex
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayHttpApi}/*"
+
+  LambdaAPIAuditsShowPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref LambdaAPIAuditsShow
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayHttpApi}/*"
+
+  # S3
+
   BucketAudits:
     Type: "AWS::S3::Bucket"
     DependsOn:
       - RoleAudits
+
+  # Lambda
 
   LambdaAPIAuditsCreate:
     Type: "AWS::Lambda::Function"
@@ -105,29 +135,7 @@ Resources:
     DependsOn:
       - RoleAudits
 
-  LambdaAPIAuditsCreatePermission:
-    Type: "AWS::Lambda::Permission"
-    Properties:
-      Action: "lambda:InvokeFunction"
-      Principal: apigateway.amazonaws.com
-      FunctionName: !Ref LambdaAPIAuditsCreate
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayHttpApi}/*"
-
-  LambdaAPIAuditsIndexPermission:
-    Type: "AWS::Lambda::Permission"
-    Properties:
-      Action: "lambda:InvokeFunction"
-      Principal: apigateway.amazonaws.com
-      FunctionName: !Ref LambdaAPIAuditsIndex
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayHttpApi}/*"
-
-  LambdaAPIAuditsShowPermission:
-    Type: "AWS::Lambda::Permission"
-    Properties:
-      Action: "lambda:InvokeFunction"
-      Principal: apigateway.amazonaws.com
-      FunctionName: !Ref LambdaAPIAuditsShow
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayHttpApi}/*"
+  # API Gateway (HTTP)
 
   ApiGatewayHttpApi:
     Type: "AWS::ApiGatewayV2::Api"
