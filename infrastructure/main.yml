@@ -2,7 +2,30 @@ AWSTemplateFormatVersion: 2010-09-09
 
 Description: A Serverless API for storing PageSpeed Insight reports
 
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - W3002
+
 Resources:
+  RoleAudits:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+
   BucketAudits:
     Type: "AWS::S3::Bucket"
     DependsOn:
@@ -81,23 +104,6 @@ Resources:
         Enabled: true
     DependsOn:
       - RoleAudits
-
-  RoleAudits:
-    Type: "AWS::IAM::Role"
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSLambdaExecute
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
 
   LambdaAPIAuditsCreatePermission:
     Type: "AWS::Lambda::Permission"
