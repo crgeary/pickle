@@ -52,10 +52,34 @@ Resources:
       FunctionName: !Ref LambdaAPIAuditsShow
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayHttpApi}/*"
 
+  BucketAuditsPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      PolicyDocument:
+        Id: BucketPolicy
+        Version: 2012-10-17
+        Statement:
+          Sid: PublicRead
+          Effect: Allow
+          Principal: "*"
+          Action: s3:GetObject
+          Resource: !Join
+            - ""
+            - - "arn:aws:s3:::"
+              - !Ref BucketAudits
+              - /*
+      Bucket: !Ref BucketAudits
+
   # S3
 
   BucketAudits:
     Type: "AWS::S3::Bucket"
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
     DependsOn:
       - RoleAudits
 
