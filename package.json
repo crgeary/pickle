@@ -21,7 +21,7 @@
     },
     "devDependencies": {
         "@crgeary/configuration-prettier": "1.0.3",
-        "prettier": "2.3.1"
+        "prettier": "2.3.2"
     },
     "repository": {
         "type": "git",
