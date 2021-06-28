@@ -242,8 +242,36 @@ Resources:
         DestinationArn: !GetAtt LogGroupHttpAccessLogs.Arn
         Format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
 
+  # Logs
+
   LogGroupHttpAccessLogs:
     Type: "AWS::Logs::LogGroup"
+    Properties:
+      RetentionInDays: 365
+
+  LogGroupLambdaAPIAuditsCreate:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaAPIAuditsCreate}"
+      RetentionInDays: 30
+
+  LogGroupLambdaAPIAuditsIndex:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaAPIAuditsIndex}"
+      RetentionInDays: 30
+
+  LogGroupLambdaAPIAuditsShow:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaAPIAuditsShow}"
+      RetentionInDays: 30
+
+  LogGroupLambdaStreamAuditsDelete:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaStreamAuditsDelete}"
+      RetentionInDays: 30
 
 Outputs:
   HttpApiEndpoint:
