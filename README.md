@@ -2,18 +2,31 @@
 
 Extend the shelf life of PageSpeed Insights reports 🥒
 
-## Routes
+## Usage
 
--   **GET** `/pagespeedonline/v5/runPagespeed` - Create a new audit (alias of POST `/audits`)
--   **GET** `/audits` - List existing audits
--   **POST** `/audits` - Create a new audit
--   **GET** `/audits/{audit}` - Get a single audit by ID
+Pickle aims to replicate the same API request & response of [PageSpeed Insights](https://developers.google.com/speed/docs/insights/v5/reference/).
+
+| Method | Route                              | Description                                  |
+| ------ | ---------------------------------- | -------------------------------------------- |
+| GET    | `/pagespeedonline/v5/runPagespeed` | Runs PageSpeed analysis on the specified URL |
+
+Pickle further extends the PageSpeed Insights API by providing routes for accessing historical reports.
+
+| Method | Route             | Description                                      |
+| ------ | ----------------- | ------------------------------------------------ |
+| GET    | `/audits`         | Query for existing PageSpeed reports             |
+| POST   | `/audits`         | Runs PageSpeed analysis on the specified URL     |
+| GET    | `/audits/{audit}` | Retrieve an existing PageSpeed report by it's ID |
+
+The `POST /audits` route is an alias of the original `GET /pagespeedonline/v5/runPagespeed` route, but it provides a more REST like API.
 
 ## Architecture
 
+Pickle is built for AWS. The architecture is **roughly** as described below. For a more in detailed description of the architecture, check out the [cloudformation template](./infrastructure/main.yml).
+
 ![Architecture of AWS services: API Gateway, Lambda, S3 & DynamoDB](./resources/architecture.png)
 
-## Deployments
+## Deploying
 
 You will need an S3 bucket to store deployment artifacts. You can create one with:
 
