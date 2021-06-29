@@ -9,7 +9,8 @@
         "build": "webpack",
         "watch": "webpack --watch",
         "check-format": "prettier --list-different --ignore-path .gitignore .",
-        "format": "prettier --ignore-path .gitignore --write ."
+        "format": "prettier --ignore-path .gitignore --write .",
+        "lint:cloudformation": "cfn-lint -t ./infrastructure/main.yml"
     },
     "dependencies": {
         "@babel/core": "7.14.6",

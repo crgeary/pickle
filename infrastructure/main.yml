@@ -1,0 +1,279 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: A Serverless API for storing PageSpeed Insight reports
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - W3002
+
+Resources:
+  # Roles & Permissions
+
+  RoleAudits:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+
+  LambdaAPIAuditsCreatePermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref LambdaAPIAuditsCreate
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayHttpApi}/*"
+
+  LambdaAPIAuditsIndexPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref LambdaAPIAuditsIndex
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayHttpApi}/*"
+
+  LambdaAPIAuditsShowPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref LambdaAPIAuditsShow
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayHttpApi}/*"
+
+  BucketAuditsPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      PolicyDocument:
+        Id: BucketPolicy
+        Version: 2012-10-17
+        Statement:
+          Sid: PublicRead
+          Effect: Allow
+          Principal: "*"
+          Action: s3:GetObject
+          Resource: !Join
+            - ""
+            - - "arn:aws:s3:::"
+              - !Ref BucketAudits
+              - /*
+      Bucket: !Ref BucketAudits
+
+  # S3
+
+  BucketAudits:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+    DependsOn:
+      - RoleAudits
+
+  # Lambda
+
+  LambdaAPIAuditsCreate:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: POST /audits
+      Code: ../dist/API_Audits_Create
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Timeout: 120
+      Role: !GetAtt RoleAudits.Arn
+      Environment:
+        Variables:
+          AUDITS_BUCKET: !Ref BucketAudits
+          AUDITS_TABLE: !Ref DynamoTableAudits
+
+  LambdaAPIAuditsIndex:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: GET /audits
+      Code: ../dist/API_Audits_Index
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Timeout: 5
+      Role: !GetAtt RoleAudits.Arn
+      Environment:
+        Variables:
+          AUDITS_TABLE: !Ref DynamoTableAudits
+
+  LambdaAPIAuditsShow:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: GET /audits/:audit
+      Code: ../dist/API_Audits_Show
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Timeout: 5
+      Role: !GetAtt RoleAudits.Arn
+      Environment:
+        Variables:
+          AUDITS_BUCKET: !Ref BucketAudits
+          AUDITS_TABLE: !Ref DynamoTableAudits
+
+  LambdaStreamAuditsDelete:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: Removes audits from DynamoDB and S3
+      Code: ../dist/Stream_Audits_Delete
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Timeout: 5
+      Role: !GetAtt RoleAudits.Arn
+      Environment:
+        Variables:
+          AUDITS_BUCKET: !Ref BucketAudits
+    DependsOn:
+      - DynamoTableAudits
+
+  EventMappingDynamoDB:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      Enabled: true
+      StartingPosition: LATEST
+      EventSourceArn: !GetAtt DynamoTableAudits.StreamArn
+      FunctionName: !Ref LambdaStreamAuditsDelete
+
+  # DynamoDB
+
+  DynamoTableAudits:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+      TimeToLiveSpecification:
+        AttributeName: expires_at
+        Enabled: true
+    DependsOn:
+      - RoleAudits
+
+  # API Gateway (HTTP)
+
+  ApiGatewayHttpApi:
+    Type: "AWS::ApiGatewayV2::Api"
+    Properties:
+      Body:
+        openapi: "3.0.1"
+        info:
+          title: "Audits API"
+          version: "0.0.1"
+        paths:
+          /pagespeedonline/v5/runPagespeed:
+            get:
+              responses:
+                default:
+                  description: "GET /pagespeedonline/v5/runPagespeed"
+              x-amazon-apigateway-integration:
+                payloadFormatVersion: "2.0"
+                type: "aws_proxy"
+                httpMethod: "POST"
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAPIAuditsCreate.Arn}/invocations
+                connectionType: "INTERNET"
+          /audits:
+            get:
+              responses:
+                default:
+                  description: "GET /audits"
+              x-amazon-apigateway-integration:
+                payloadFormatVersion: "2.0"
+                type: "aws_proxy"
+                httpMethod: "POST"
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAPIAuditsIndex.Arn}/invocations
+                connectionType: "INTERNET"
+            post:
+              responses:
+                default:
+                  description: "POST /audits"
+              x-amazon-apigateway-integration:
+                payloadFormatVersion: "2.0"
+                type: "aws_proxy"
+                httpMethod: "POST"
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAPIAuditsCreate.Arn}/invocations
+                connectionType: "INTERNET"
+          /audits/{audit}:
+            get:
+              responses:
+                default:
+                  description: "GET /audits/{audit}"
+              x-amazon-apigateway-integration:
+                payloadFormatVersion: "2.0"
+                type: "aws_proxy"
+                httpMethod: "POST"
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAPIAuditsShow.Arn}/invocations
+                connectionType: "INTERNET"
+        x-amazon-apigateway-cors:
+          allowMethods:
+            - "GET"
+            - "HEAD"
+            - "OPTIONS"
+            - "POST"
+          allowOrigins:
+            - "*"
+
+  ApiGatewayHttpApiStage:
+    Type: "AWS::ApiGatewayV2::Stage"
+    Properties:
+      StageName: $default
+      ApiId: !Ref ApiGatewayHttpApi
+      AutoDeploy: true
+      AccessLogSettings:
+        DestinationArn: !GetAtt LogGroupHttpAccessLogs.Arn
+        Format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+
+  # Logs
+
+  LogGroupHttpAccessLogs:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      RetentionInDays: 365
+
+  LogGroupLambdaAPIAuditsCreate:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaAPIAuditsCreate}"
+      RetentionInDays: 30
+
+  LogGroupLambdaAPIAuditsIndex:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaAPIAuditsIndex}"
+      RetentionInDays: 30
+
+  LogGroupLambdaAPIAuditsShow:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaAPIAuditsShow}"
+      RetentionInDays: 30
+
+  LogGroupLambdaStreamAuditsDelete:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaStreamAuditsDelete}"
+      RetentionInDays: 30
+
+Outputs:
+  HttpApiEndpoint:
+    Description: The endpoint for the API
+    Value: !GetAtt ApiGatewayHttpApi.ApiEndpoint

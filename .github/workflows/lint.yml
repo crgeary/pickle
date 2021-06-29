@@ -1,0 +1,17 @@
+name: Lint CloudFormation
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  cloudformation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup CloudFormation Linter
+        uses: scottbrenner/cfn-lint-action@v2
+      - name: Run Linter.
+        run: npm run lint:cloudformation
