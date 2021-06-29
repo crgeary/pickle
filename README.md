@@ -2,9 +2,15 @@
 
 Extend the shelf life of PageSpeed Insights reports 🥒
 
+---
+
+PageSpeed Insights is a fantastic tool for gathering a quick overview of common page performance issues. Simply provide a URL and within seconds you have a report of actionable recommendations and key performance metrics.
+
+Unfortunately, those reports cannot be shared, downloaded or accessed in the future. This is where Pickle comes in. Pickle is a wrapper around the PageSpeed Insights API which automatically stores reports, and makes them available & shareable for years to come.
+
 ## Usage
 
-Pickle aims to replicate the same API request & response of [PageSpeed Insights](https://developers.google.com/speed/docs/insights/v5/reference/).
+Pickle replicates the same API request & response of [PageSpeed Insights](https://developers.google.com/speed/docs/insights/v5/reference/).
 
 | Method | Route                              | Description                                  |
 | ------ | ---------------------------------- | -------------------------------------------- |
