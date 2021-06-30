@@ -8,6 +8,12 @@ Metadata:
       ignore_checks:
         - W3002
 
+Parameters:
+  PageSpeedInsightsKeys:
+    Type: String
+    NoEcho: true
+    Description: Enter your PageSpeed Insights API key (optional)
+
 Resources:
   # Roles & Permissions
 
@@ -98,6 +104,7 @@ Resources:
         Variables:
           AUDITS_BUCKET: !Ref BucketAudits
           AUDITS_TABLE: !Ref DynamoTableAudits
+          PAGESPEED_INSIGHTS_API: !Ref PageSpeedInsightsKeys
 
   LambdaAPIAuditsIndex:
     Type: "AWS::Lambda::Function"
