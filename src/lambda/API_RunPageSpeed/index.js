@@ -1,11 +1,15 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import psi from '../../psi';
 
 export const handler = async (event) => {
     const { rawQueryString } = event;
-    let response;
+
+    let response, id;
 
     try {
         response = await psi.run(rawQueryString);
+        id = uuidv4();
     } catch (err) {
         if (err.response) {
             response = err.response;
@@ -18,6 +22,9 @@ export const handler = async (event) => {
         isBase64Encoded: false,
         statusCode: response.status,
         headers: response.headers,
-        body: JSON.stringify(response.data),
+        body: JSON.stringify({
+            audit_id: id,
+            ...response.data,
+        }),
     };
 };
