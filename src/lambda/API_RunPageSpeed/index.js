@@ -15,6 +15,11 @@ export const handler = async (event) => {
             response = err.response;
         } else {
             console.error(err);
+            return {
+                isBase64Encoded: false,
+                statusCode: 500,
+                body: '',
+            };
         }
     }
 
