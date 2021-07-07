@@ -131,7 +131,7 @@ Resources:
   LambdaAPIAuditsShow:
     Type: "AWS::Lambda::Function"
     Properties:
-      Description: GET /audits/:audit
+      Description: GET /audits/:id
       Code: ../dist/API_Audits_Show
       Handler: index.handler
       Runtime: nodejs14.x
