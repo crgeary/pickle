@@ -61,6 +61,15 @@ export const handler = async (event) => {
     const now = new Date(response.data?.lighthouseResult?.fetchTime);
     const expires_at = new Date(now.setYear(now.getFullYear() + 2));
 
+    const resources = [
+        {
+            bucket: s3response.Bucket,
+            key: s3response.Key,
+            location: s3response.Location,
+            type: 'LHJSON',
+        },
+    ];
+
     console.log(`Inserting data to DynamoDB with id: [${id}]`);
 
     try {
@@ -72,14 +81,7 @@ export const handler = async (event) => {
                     expires_at: Math.floor(expires_at.getTime() / 1000),
                     created_at: now.toUTCString(),
                     url: response.data?.lighthouseResult?.finalUrl,
-                    resources: [
-                        {
-                            bucket: s3response.Bucket,
-                            key: s3response.Key,
-                            location: s3response.Location,
-                            type: 'LHJSON',
-                        },
-                    ],
+                    resources,
                 },
             })
             .promise();
@@ -97,7 +99,10 @@ export const handler = async (event) => {
         statusCode: response.status,
         headers: response.headers,
         body: JSON.stringify({
-            audit_id: id,
+            pickle: {
+                id,
+                resources,
+            },
             ...response.data,
         }),
     };
