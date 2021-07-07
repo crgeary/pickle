@@ -1,13 +1,4 @@
-import AWS from 'aws-sdk';
-
-const dynamoDB = new AWS.DynamoDB.DocumentClient({
-    apiVersion: `2012-10-08`,
-    region: process.env.AWS_REGION,
-});
-
-const s3 = new AWS.S3({
-    apiVersion: `2006-03-01`,
-});
+import { s3, dynamoDB } from '../../aws';
 
 export const handler = async (event) => {
     const { pathParameters } = event;

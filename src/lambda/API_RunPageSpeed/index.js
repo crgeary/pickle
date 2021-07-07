@@ -1,16 +1,7 @@
-import AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 
 import psi from '../../psi';
-
-const s3 = new AWS.S3({
-    apiVersion: `2006-03-01`,
-});
-
-const dynamoDB = new AWS.DynamoDB.DocumentClient({
-    apiVersion: `2012-10-08`,
-    region: process.env.AWS_REGION,
-});
+import { s3, dynamoDB } from '../../aws';
 
 export const handler = async (event) => {
     const { rawQueryString } = event;
