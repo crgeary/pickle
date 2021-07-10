@@ -299,6 +299,12 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${LambdaAPIAuditsShow}"
       RetentionInDays: 30
 
+  LogGroupLambdaAPIRunPageSpeed:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaAPIRunPageSpeed}"
+      RetentionInDays: 30
+
   LogGroupLambdaStreamAuditsDelete:
     Type: "AWS::Logs::LogGroup"
     Properties:
