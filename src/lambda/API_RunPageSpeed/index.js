@@ -35,7 +35,7 @@ export const handler = async (event) => {
             .upload({
                 Bucket: process.env.AUDITS_BUCKET,
                 Key: `${id}/lighthouse.json`,
-                Body: JSON.stringify(response.data),
+                Body: JSON.stringify(response.data.lighthouseResult),
                 ContentType: `application/json; charset=utf-8`,
                 CacheControl: `public, max-age=604800, immutable`,
             })
@@ -64,6 +64,7 @@ export const handler = async (event) => {
     console.log(`Inserting data to DynamoDB with id: [${id}]`);
 
     try {
+        const { lighthouseResult, ...other } = response.data;
         await dynamoDB
             .put({
                 TableName: process.env.AUDITS_TABLE,
@@ -73,6 +74,7 @@ export const handler = async (event) => {
                     created_at: now.toUTCString(),
                     url: response.data?.lighthouseResult?.finalUrl,
                     resources,
+                    response: other,
                 },
             })
             .promise();

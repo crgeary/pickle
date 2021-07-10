@@ -71,7 +71,10 @@ export const handler = async (event) => {
                 id,
                 resources: audit?.resources,
             },
-            ...report,
+            ...audit.response,
+            lighthouseResult: {
+                ...report,
+            },
         }),
     };
 };
