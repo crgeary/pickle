@@ -248,7 +248,7 @@ Resources:
             get:
               responses:
                 default:
-                  description: "GET /audits/{audit}"
+                  description: "GET /audits/{id}"
               x-amazon-apigateway-integration:
                 payloadFormatVersion: "2.0"
                 type: "aws_proxy"
