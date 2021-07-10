@@ -1,11 +1,22 @@
-name: Lint CloudFormation
+name: Lint
 
 on:
   pull_request:
-    branches:
-      - master
 
 jobs:
+  js:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup ESLint
+        uses: actions/setup-node@v2
+        with:
+          cache: "npm"
+      - name: Install NPM dependencies
+        run: npm ci
+      - name: Run formatting && lint checks on JavaScript
+        run: npm run check-format && npm run lint:js
   cloudformation:
     runs-on: ubuntu-latest
     steps:
@@ -13,5 +24,5 @@ jobs:
         uses: actions/checkout@v2
       - name: Setup CloudFormation Linter
         uses: scottbrenner/cfn-lint-action@v2
-      - name: Run Linter.
+      - name: Run lint checks on CloudFormation
         run: npm run lint:cloudformation
