@@ -58,6 +58,14 @@ Resources:
       FunctionName: !Ref LambdaAPIAuditsShow
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayHttpApi}/*"
 
+  LambdaAPIRunPageSpeedPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref LambdaAPIRunPageSpeed
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayHttpApi}/*"
+
   BucketAuditsPolicy:
     Type: "AWS::S3::BucketPolicy"
     Properties:
@@ -99,6 +107,7 @@ Resources:
       Handler: index.handler
       Runtime: nodejs14.x
       Timeout: 120
+      MemorySize: 256
       Role: !GetAtt RoleAudits.Arn
       Environment:
         Variables:
@@ -122,7 +131,7 @@ Resources:
   LambdaAPIAuditsShow:
     Type: "AWS::Lambda::Function"
     Properties:
-      Description: GET /audits/:audit
+      Description: GET /audits/:id
       Code: ../dist/API_Audits_Show
       Handler: index.handler
       Runtime: nodejs14.x
@@ -132,6 +141,22 @@ Resources:
         Variables:
           AUDITS_BUCKET: !Ref BucketAudits
           AUDITS_TABLE: !Ref DynamoTableAudits
+
+  LambdaAPIRunPageSpeed:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: GET /pagespeedonline/v5/runPagespeed
+      Code: ../dist/API_RunPageSpeed
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Timeout: 120
+      MemorySize: 256
+      Role: !GetAtt RoleAudits.Arn
+      Environment:
+        Variables:
+          AUDITS_BUCKET: !Ref BucketAudits
+          AUDITS_TABLE: !Ref DynamoTableAudits
+          PAGESPEED_INSIGHTS_API: !Ref PageSpeedInsightsKeys
 
   LambdaStreamAuditsDelete:
     Type: "AWS::Lambda::Function"
@@ -196,7 +221,7 @@ Resources:
                 payloadFormatVersion: "2.0"
                 type: "aws_proxy"
                 httpMethod: "POST"
-                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAPIAuditsCreate.Arn}/invocations
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaAPIRunPageSpeed.Arn}/invocations
                 connectionType: "INTERNET"
           /audits:
             get:
@@ -223,7 +248,7 @@ Resources:
             get:
               responses:
                 default:
-                  description: "GET /audits/{audit}"
+                  description: "GET /audits/{id}"
               x-amazon-apigateway-integration:
                 payloadFormatVersion: "2.0"
                 type: "aws_proxy"
