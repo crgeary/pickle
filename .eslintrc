@@ -1,0 +1,13 @@
+{
+    "extends": ["eslint:recommended", "prettier"],
+    "env": {
+        "es2021": true,
+        "node": true
+    },
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "rules": {
+        "no-unused-vars": ["error", { "ignoreRestSiblings": true }]
+    }
+}
