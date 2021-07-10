@@ -10,7 +10,9 @@
         "watch": "webpack --watch",
         "check-format": "prettier --list-different --ignore-path .gitignore .",
         "format": "prettier --ignore-path .gitignore --write .",
-        "lint:cloudformation": "cfn-lint -t ./infrastructure/main.yml"
+        "lint": "npm run lint:cloudformation",
+        "lint:cloudformation": "cfn-lint -t ./infrastructure/main.yml",
+        "lint:js": "eslint --ignore-path .gitignore --ext .js ."
     },
     "dependencies": {
         "@babel/core": "7.14.6",
@@ -24,6 +26,8 @@
     },
     "devDependencies": {
         "@crgeary/configuration-prettier": "1.0.3",
+        "eslint": "7.30.0",
+        "eslint-config-prettier": "8.3.0",
         "prettier": "2.3.2"
     },
     "repository": {
