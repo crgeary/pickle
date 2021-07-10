@@ -26,4 +26,4 @@ aws cloudformation deploy \
     --template-file dist/template.${STACK_ENV}.yml \
     --stack-name ${STACK_NAME} \
     --capabilities CAPABILITY_IAM \
-    --parameter-overrides PageSpeedInsightsKeys="${PAGESPEED_INSIGHTS_API}"
+    --parameter-overrides PageSpeedInsightsKeys="${PAGESPEED_INSIGHTS_API}" Env="${STACK_ENV}"
