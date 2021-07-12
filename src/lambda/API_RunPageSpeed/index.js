@@ -1,13 +1,15 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import psi from '../../psi';
-import { s3, dynamoDB } from '../../aws';
+import { uploadLighthouseJson, insertAudit } from '../../aws';
+import * as http from '../../http';
+
+let response;
 
 export const handler = async (event) => {
     const { rawQueryString } = event;
-
-    let response;
-    const id = uuidv4();
+    const id = uuidv4(),
+        resources = [];
 
     console.log(`Passing request to PageSpeed Insights with id: [${id}]`);
 
@@ -15,88 +17,46 @@ export const handler = async (event) => {
         response = await psi.run(rawQueryString);
     } catch (err) {
         if (err.response) {
-            response = err.response;
+            return http.response(err.response.status, err.response.data, err.response.headers);
         } else {
             console.error(err);
-            return {
-                isBase64Encoded: false,
-                statusCode: 500,
-                body: 'Unkown Error',
-            };
+            return http.error(http.status.SERVER_ERROR, 'Unknown Error');
         }
     }
 
-    let s3response;
+    const { lighthouseResult, ...responseWithoutResult } = response.data;
 
     console.log(`Writing Lighthouse reports to S3 with prefix: [${id}]`);
 
     try {
-        s3response = await s3
-            .upload({
-                Bucket: process.env.AUDITS_BUCKET,
-                Key: `${id}/lighthouse.json`,
-                Body: JSON.stringify(response.data.lighthouseResult),
-                ContentType: `application/json; charset=utf-8`,
-                CacheControl: `public, max-age=604800, immutable`,
-            })
-            .promise();
+        resources.push(await uploadLighthouseJson(`${id}/lighthouse.json`, JSON.stringify(lighthouseResult)));
     } catch (err) {
         console.error(err);
-        return {
-            isBase64Encoded: false,
-            statusCode: 500,
-            body: 'Unkown Error',
-        };
+        return http.error(http.status.SERVER_ERROR, 'Unknown Error');
     }
 
-    const now = new Date(response.data?.lighthouseResult?.fetchTime);
-    const expires_at = new Date(now.setYear(now.getFullYear() + 2));
-
-    const resources = [
-        {
-            bucket: s3response.Bucket,
-            key: s3response.Key,
-            location: s3response.Location,
-            type: 'LHJSON',
-        },
-    ];
-
-    console.log(`Inserting data to DynamoDB with id: [${id}]`);
+    console.log(`Inserting data into DynamoDB with id: [${id}]`);
 
     try {
-        const { lighthouseResult, ...other } = response.data;
-        await dynamoDB
-            .put({
-                TableName: process.env.AUDITS_TABLE,
-                Item: {
-                    id,
-                    expires_at: Math.floor(expires_at.getTime() / 1000),
-                    created_at: now.toUTCString(),
-                    url: response.data?.lighthouseResult?.finalUrl,
-                    resources,
-                    response: other,
-                },
-            })
-            .promise();
+        await insertAudit({
+            id,
+            url: lighthouseResult.finalUrl,
+            created_at: lighthouseResult.fetchTime,
+            response: responseWithoutResult,
+            resources,
+        });
     } catch (err) {
         console.error(err);
-        return {
-            isBase64Encoded: false,
-            statusCode: 500,
-            body: 'Unkown Error',
-        };
+        return http.error(http.status.SERVER_ERROR, 'Unknown Error');
     }
 
-    return {
-        isBase64Encoded: false,
-        statusCode: response.status,
-        headers: response.headers,
-        body: JSON.stringify({
-            pickle: {
-                id,
-                resources,
-            },
-            ...response.data,
-        }),
+    const body = {
+        pickle: {
+            id,
+            resources,
+        },
+        ...response.data,
     };
+
+    return http.json(response.status, body, response.headers);
 };
