@@ -13,9 +13,6 @@ Parameters:
     Type: String
     NoEcho: true
     Description: Enter your PageSpeed Insights API key (optional)
-  Env:
-    Type: String
-    Description: The environment name (eg, staging)
 
 Resources:
   # Roles & Permissions
