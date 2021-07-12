@@ -92,7 +92,6 @@ Resources:
   BucketAudits:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !Sub "pickle-audits-${Env}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
