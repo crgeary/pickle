@@ -1,40 +1,24 @@
-import { s3, dynamoDB } from '../../aws';
+import { getAudit, getLighthouseJson } from '../../aws';
+import * as http from '../../http';
 
 export const handler = async (event) => {
     const { pathParameters } = event;
     const { id } = pathParameters;
 
-    let dynamoResponse, s3response, report;
+    let dynamoResponse,
+        report = {};
 
     try {
-        dynamoResponse = await dynamoDB
-            .get({
-                TableName: process.env.AUDITS_TABLE,
-                Key: {
-                    id,
-                },
-            })
-            .promise();
+        dynamoResponse = await getAudit(id);
     } catch (err) {
         console.error(err);
-        return {
-            isBase64Encoded: false,
-            statusCode: 500,
-            body: 'Unkown Error',
-        };
+        return http.error(http.status.SERVER_ERROR, 'Unknown Error');
     }
 
     if (!('Item' in dynamoResponse)) {
-        return {
-            isBase64Encoded: false,
-            statusCode: 404,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                message: `Audit not found for id: ${id}`,
-            }),
-        };
+        return http.json(http.status.NOT_FOUND, {
+            message: `Audit not found for id: ${id}`,
+        });
     }
 
     const audit = dynamoResponse.Item;
@@ -43,38 +27,21 @@ export const handler = async (event) => {
         const resource = audit.resources.filter((a) => a.type === 'LHJSON').find(() => true);
         if (resource) {
             try {
-                s3response = await s3
-                    .getObject({
-                        Bucket: resource.bucket,
-                        Key: resource.key,
-                    })
-                    .promise();
-                report = JSON.parse(s3response.Body.toString());
+                report = await getLighthouseJson(resource.key);
             } catch (err) {
                 console.error(err);
             }
         }
     }
 
-    if (!report) {
-        report = {};
-    }
-
-    return {
-        isBase64Encoded: false,
-        statusCode: 200,
-        headers: {
-            'Content-Type': 'application/json',
+    return http.json(http.status.OK, {
+        pickle: {
+            id,
+            resources: audit?.resources,
         },
-        body: JSON.stringify({
-            pickle: {
-                id,
-                resources: audit?.resources,
-            },
-            ...audit.response,
-            lighthouseResult: {
-                ...report,
-            },
-        }),
-    };
+        ...audit.response,
+        lighthouseResult: {
+            ...report,
+        },
+    });
 };
