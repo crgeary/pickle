@@ -10,19 +10,14 @@ Unfortunately, those reports cannot be shared, downloaded or accessed in the fut
 
 ## Usage
 
-Pickle replicates the same API request & response of [PageSpeed Insights](https://developers.google.com/speed/docs/insights/v5/reference/).
+Pickle aims to replicate the same API request & response of [PageSpeed Insights](https://developers.google.com/speed/docs/insights/v5/reference/). It then further extends it to provide additional information and access to historical reports.
 
-| Method | Route                              | Description                                  |
-| ------ | ---------------------------------- | -------------------------------------------- |
-| GET    | `/pagespeedonline/v5/runPagespeed` | Runs PageSpeed analysis on the specified URL |
-
-Pickle further extends the PageSpeed Insights API by providing routes for accessing historical reports.
-
-| Method | Route             | Description                                      |
-| ------ | ----------------- | ------------------------------------------------ |
-| GET    | `/audits`         | Query for existing PageSpeed reports             |
-| POST   | `/audits`         | Runs PageSpeed analysis on the specified URL     |
-| GET    | `/audits/{audit}` | Retrieve an existing PageSpeed report by it's ID |
+| Method | Route                              | Description                                      |
+| ------ | ---------------------------------- | ------------------------------------------------ |
+| GET    | `/pagespeedonline/v5/runPagespeed` | Runs PageSpeed analysis on the specified URL     |
+| GET    | `/audits`                          | Query for existing PageSpeed reports             |
+| POST   | `/audits`                          | Runs PageSpeed analysis on the specified URL     |
+| GET    | `/audits/{audit}`                  | Retrieve an existing PageSpeed report by it's ID |
 
 The `POST /audits` route is an alias of the original `GET /pagespeedonline/v5/runPagespeed` route, but it provides a more REST like API.
 
