@@ -1,7 +1,7 @@
 {
     "extends": ["config:base"],
     "commitBodyTable": true,
-    "schedule": ["after 7am and before 4pm every weekday"],
+    "schedule": ["every saturday before 7am"],
     "requiredStatusChecks": null,
     "packageRules": [
         {
@@ -12,6 +12,11 @@
         },
         {
             "matchUpdateTypes": ["patch", "pin", "digest"],
+            "automerge": true
+        },
+        {
+            "matchPackageNames": ["aws-sdk"],
+            "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
             "automerge": true
         }
     ]
